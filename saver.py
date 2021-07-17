@@ -1,3 +1,5 @@
+raise NotImplementedError("Cells must be redone")
+
 from cell_manager import Cell, CellType
 
 class Saver:

@@ -1,6 +1,7 @@
 # Base on this tutorial: https://youtu.be/xYhniILN6Ls
 
 import pygame
+import cell_manager
 
 
 
@@ -8,6 +9,7 @@ import pygame
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 440
 TOOLS_MARGIN = 100
+BG_COLOR = (0, 0, 0)
 
 pygame.init()
 
@@ -17,9 +19,10 @@ pygame.display.set_caption("Cell Machine Python edition")
 clock = pygame.time.Clock()
 
 
-# Images
-BG_COLOR = (0, 0, 0)
-background = pygame.image.load("textures/background.png").convert_alpha()
+
+# Import base cells
+cell_manager.register_all()
+BG = cell_manager.get_background()
 
 
 
@@ -43,7 +46,7 @@ while run:
 
     # Display
     screen.fill(BG_COLOR)
-    screen.blit(background, (-scroll_horizontal, scroll_vertical))
+    screen.blit(BG, (-scroll_horizontal, scroll_vertical))
 
 
 

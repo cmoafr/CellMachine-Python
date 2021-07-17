@@ -1,0 +1,7 @@
+{
+    "name": "Background",
+    "texture": "background.png",
+    "rotation": 1,
+    "priority": null,
+    "Zorder": -100
+}

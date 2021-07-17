@@ -1,68 +1,59 @@
-class CellType:
-    GENERATOR = 0
-    CWROTATER = 1
-    CCWROTATER = 2
-    MOVER = 3
-    SLIDE = 4
-    BLOCK = 5
-    WALL = 6
-    ENEMY = 7
-    TRASH = 8
+import io
+import json
+import os
+from pygame.image import load as load_img
 
-class Cell:
-    def __init__(self, i, j, type_=None, rotation=0, placeable=False):
-        self.x = j
-        self.y = i
-        self.type = type_
-        self.rotation = rotation
-        self.placeable = placeable
-        
-    def isPlaceable(self):
-        return self.placeable
+
+
+__base_cells = {}
+__background = None
+
+
+
+class BaseCell:
+
+    def __init__(self, j):
+        self.name = j["name"]
+        self.texture = load_img("./textures/"+j["texture"])
+        self.nb_rotations = j["rotation"]
+        self.priorities = j["priority"]
+        self.z_order = j["Zorder"] if "Zorder" in j else 0
+        if self.z_order == -100 and self.name != "Background":
+            raise ValueError(self.name + " has a Z order of -100 but this is reserved for the background")
+
+
+
+def register(obj):
+    try:
+        if type(obj) == str and obj[0] != "{":
+            if obj not in os.listdir("./cells"):
+                obj = obj + ".json"
+            obj = open("./cells/"+obj)
+        if type(obj) in (io.BufferedReader, io.TextIOWrapper):
+            j = json.load(obj)
+        elif type(obj) in (str, bytes):
+            j = json.loads(obj)
+        __base_cells[j["name"]] = BaseCell(j)
+        return
     
-    def __repr__(self):
-        if self.type == None:
-            return "."
-        for attr in dir(CellType):
-            if CellType.__getattribute__(CellType, attr) == self.type:
-                return attr + ">v<^"[self.rotation] + "_"*self.placeable
-        return "?"
+    except Exception as e:
+        raise RuntimeError("Tried to load an invalid base cell")
 
-class Cells:
-    def __init__(self, width, height):
-        self.width = width
-        self.height = height
+def register_all(clear=False):
+    global __base_cells, __background
+    if clear:
+        __base_cells = {}
+        __background = None
+    for filename in os.listdir("./cells"):
+        register(filename)
+    for bc in __base_cells.values():
+        if bc.z_order == -100:
+            __background = bc.texture
+            break
+    if __background == None:
+        raise FileNotFoundError("Background file not found")
 
-        self.__cellListModif = False
-        self.__cellList = []
-        self.cellGrid = [[Cell(i, j) for j in range(width)] for i in range(height)]
-
-    def set(self, j, i, type_=None, rotation=0, placeable=False):
-        if type(type_) == Cell:
-            self.cellGrid[i][j] = type_
-        else:
-            self.cellGrid[i][j] = Cell(i, j, type_, rotation, placeable)
-        self.__cellListModif = True
-
-    @property
-    def cellList(self):
-        if self.__cellListModif:
-            self.__cellList = []
-            for i in range(self.height):
-                for j in range(self.width):
-                    cell = self.cellGrid[i][j]
-                    if cell.type != None:
-                        self.__cellList.append(cell)
-            # => Already sorted
-            self.__cellListModif = False
-        return self.__cellList
-
-    def __sort(self):
-        self.__cellList.sort(key=lambda cell: cell.x+self.width*cell.y)
-
-    def __repr__(self):
-        def icon(cell):
-            if cell.type == None:
-                return " "
-            return ")u(nOOOOQQQQ>v<^-|-|++++####@@@@XXXX"[4*cell.type + cell.rotation]
-        return "+" + "-"*self.width + "+\n|" + "|\n|".join(reversed(["".join(icon(cell) for cell in line) for line in self.cellGrid])) + "|\n+" + "-"*self.width + "+"
+def get_background():
+    if __background == None:
+        raise ValueError("No background defined yet")
+    return __background
