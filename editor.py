@@ -39,6 +39,20 @@ zoom = 1
 
 
 
+grid = cell_manager.Grid(10, 10)
+
+def draw_grid():
+    scaling = int(CELL_SIZE*zoom)
+    for y in range(grid.height):
+        for x in range(grid.width):
+            coords = coords_to_pxl(x, y)
+            screen.blit(grid[x, y].texture, coords)
+
+def coords_to_pxl(x, y):
+    return ((scroll_horizontal+CELL_SIZE*x)*zoom, (scroll_vertical+CELL_SIZE*y)*zoom)
+
+
+
 # Main loop
 run = True
 while run:
@@ -46,18 +60,19 @@ while run:
     frame_time = clock.get_time()
     clock.tick()
 
+
+
     # Display
     screen.fill(BG_COLOR)
-    scaling = int(CELL_SIZE*zoom)
-    screen.blit(pygame.transform.scale(BG, (scaling, scaling)), (-scroll_horizontal, scroll_vertical))
+    draw_grid()
 
 
 
     # Move
     if scroll_left:
-        scroll_horizontal -= scroll_speed*frame_time/1000
-    if scroll_right:
         scroll_horizontal += scroll_speed*frame_time/1000
+    if scroll_right:
+        scroll_horizontal -= scroll_speed*frame_time/1000
     if scroll_up:
         scroll_vertical += scroll_speed*frame_time/1000
     if scroll_down:
@@ -77,6 +92,7 @@ while run:
                 zoom *= 2
             if event.y == -1 and zoom > 0.05:
                 zoom /= 2
+            grid.resize_textures(int(zoom*CELL_SIZE))
 
         # Change movement
         if event.type == pygame.KEYDOWN:

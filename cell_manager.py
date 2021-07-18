@@ -62,3 +62,44 @@ def get_background():
     if _background == None:
         raise ValueError("No background defined yet")
     return _background
+
+
+
+
+
+class Cell:
+
+    def __init__(self, x, y):
+        self.x = x
+        self.y = y
+        self.bases = [_base_cells["Background"]]
+        self.reset_texture()
+
+    def reset_texture(self):
+        texture = pygame.Surface((CELL_SIZE, CELL_SIZE))
+        for base in sorted(self.bases, key=lambda base: base.z_order):
+            texture.blit(base.texture, (0,0))
+        self.texture = texture
+
+    def resize_texture(self, size):
+        self.texture = pygame.transform.scale(self.texture, (size, size))
+
+
+
+
+
+class Grid:
+
+    def __init__(self, width, height):
+        self.width = width
+        self.height = height
+        self.__grid = [[Cell(x, y) for y in range(self.width)] for x in range(self.height)]
+
+    def __getitem__(self, coords):
+        x, y = coords
+        return self.__grid[y][x]
+
+    def resize_textures(self, size):
+        for y in range(self.height):
+            for x in range(self.width):
+                self.__grid[y][x].resize_texture(size)
