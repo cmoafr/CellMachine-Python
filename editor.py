@@ -23,6 +23,7 @@ clock = pygame.time.Clock()
 # Import base cells
 cell_manager.register_all()
 BG = cell_manager.get_background()
+CELL_SIZE = cell_manager.CELL_SIZE
 
 
 
@@ -34,6 +35,7 @@ scroll_up = False
 scroll_down = False
 scroll_horizontal = 0
 scroll_vertical = 0
+zoom = 1
 
 
 
@@ -46,7 +48,8 @@ while run:
 
     # Display
     screen.fill(BG_COLOR)
-    screen.blit(BG, (-scroll_horizontal, scroll_vertical))
+    scaling = int(CELL_SIZE*zoom)
+    screen.blit(pygame.transform.scale(BG, (scaling, scaling)), (-scroll_horizontal, scroll_vertical))
 
 
 
@@ -64,8 +67,16 @@ while run:
 
     # Event handling
     for event in pygame.event.get():
+        
         if event.type == pygame.QUIT:
             run = False
+
+        # Zoom
+        if event.type == pygame.MOUSEWHEEL:
+            if event.y == 1 and zoom < 8:
+                zoom *= 2
+            if event.y == -1 and zoom > 0.05:
+                zoom /= 2
 
         # Change movement
         if event.type == pygame.KEYDOWN:
